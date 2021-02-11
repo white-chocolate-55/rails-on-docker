@@ -8,7 +8,51 @@ services:
 
     ports:
       - "3000:3000"
-    
+
+    stdin_open: true
+    tty: true
+
     volumes:
       - .:/app
       - /app/node_modules
+
+    environment:
+      - WEBPACKER_DEV_SERVER_HOST=webpack
+      - WEBPACKER_DEV_SERVER_PUBLIC=localhost:3035
+      - DATABASE_URL=mysql2://root:rails-on-docker@db/rails-on-docker_development
+
+    depends_on: 
+      - db
+
+  db:
+    image: mysql:8.0.15
+
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+
+    environment:
+      - MYSQL_DATABASE=rails-on-docker_development
+      - MYSQL_ROOT_PASSWORD=test
+
+    volumes:
+      - db-data:/var/lib/mysql
+
+  webpack:
+    build: .
+
+    command: ruby ./bin/webpack-dev-server
+
+    ports:
+      - "3035:3035"
+
+    environment:
+      - WEBPACKER_DEV_SERVER_HOST=0.0.0.0
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  db-data:
